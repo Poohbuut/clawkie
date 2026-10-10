@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { @apply bg-cream font-sans text-[#2b2b2b] antialiased; }
+
+@layer components {
+  .field-label { @apply mb-1.5 block text-[0.8rem] font-bold opacity-80; }
+  .field-input {
+    @apply w-full rounded-[10px] border border-black/15 bg-[#fffefb] px-3.5 py-2.5 text-[0.95rem]
+           focus:outline-none focus:ring-2 focus:ring-offset-0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

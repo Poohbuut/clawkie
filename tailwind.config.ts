@@ -8,6 +8,7 @@ const config: Config = {
         cream: '#fbf6ef',
         sage: '#dce0d9',
         tan: '#ead7c3',
+        ink: '#2c1820',
         nails: '#2c1820',
         cookie: '#3a2218',
         ok: '#3a7a3a',

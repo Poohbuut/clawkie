@@ -86,11 +86,11 @@ export default function OrderForm({ cookies }: { cookies: Service[] }) {
   }
 
   const stepTitle = 'mb-1 flex items-center gap-2.5 font-display text-[1.4rem] font-semibold';
-  const stepNum = 'inline-flex h-7 w-7 items-center justify-center rounded-full bg-tan font-sans text-sm text-cookie';
+  const stepNum = 'inline-flex h-7 w-7 items-center justify-center rounded-full bg-tan font-sans text-sm text-ink';
   const step = 'mb-8 border-b border-cookie/10 pb-8 last-of-type:mb-0 last-of-type:border-0 last-of-type:pb-0';
 
   return (
-    <form key={formKey} onSubmit={onSubmit} noValidate className="rounded-[20px] bg-white p-6 shadow-[0_10px_40px_rgba(58,34,24,0.08)] sm:p-8">
+    <form key={formKey} onSubmit={onSubmit} noValidate className="rounded-md border border-ink/15 bg-cream p-6 sm:p-8">
       <section className={step} aria-labelledby="s1">
         <h2 id="s1" className={stepTitle}><span className={stepNum}>1</span> Pick your cookies</h2>
         <p className="mb-5 text-sm opacity-65">Tap + / &minus; to add cookies to your box.</p>
@@ -100,7 +100,7 @@ export default function OrderForm({ cookies }: { cookies: Service[] }) {
           {cookies.map((c) => {
             const qty = cart[c.id] || 0;
             return (
-              <div key={c.id} className={`flex flex-col gap-2 rounded-2xl border p-3.5 transition-colors ${qty ? 'border-tan shadow-[0_4px_16px_rgba(220,162,102,0.2)]' : 'border-cookie/10'}`}>
+              <div key={c.id} className={`flex flex-col gap-2 rounded-md border p-3.5 transition-colors ${qty ? 'border-tan shadow-[0_4px_16px_rgba(220,162,102,0.2)]' : 'border-cookie/10'}`}>
                 <span className="text-[0.95rem] font-bold">{c.name}</span>
                 <span className="text-xs opacity-70">{peso(c.price)} each</span>
                 <div className="mt-auto flex items-center justify-between gap-2">
@@ -128,7 +128,7 @@ export default function OrderForm({ cookies }: { cookies: Service[] }) {
         <div className="my-5 flex gap-2.5" role="radiogroup" aria-label="Fulfillment method">
           {(['pickup', 'delivery'] as Method[]).map((m) => (
             <button key={m} type="button" role="radio" aria-checked={method === m} onClick={() => setMethod(m)}
-              className={`flex-1 rounded-full border border-tan py-2.5 text-sm font-bold transition-colors ${method === m ? 'bg-tan' : 'hover:bg-tan/40'}`}>
+              className={`flex-1 rounded-md border border-tan py-2.5 text-sm font-semibold transition-colors ${method === m ? 'bg-tan' : 'hover:bg-tan/40'}`}>
               {m === 'pickup' ? 'Pick-up' : 'Delivery'}
             </button>
           ))}
@@ -170,7 +170,7 @@ export default function OrderForm({ cookies }: { cookies: Service[] }) {
         </div>
       </section>
 
-      <button type="submit" disabled={submitting} className="mt-6 w-full rounded-full bg-cookie py-3.5 font-bold tracking-wide text-white transition hover:-translate-y-px disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
+      <button type="submit" disabled={submitting} className="mt-6 w-full rounded-md bg-ink py-3.5 font-semibold text-cream transition hover:-translate-y-px disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
         {submitting ? 'Placing order...' : 'Place my order'}
       </button>
       <p role="status" className={`mt-3 min-h-[1.2em] text-center text-sm font-semibold ${status?.kind === 'error' ? 'text-bad' : 'text-ok'}`}>

@@ -111,8 +111,8 @@ export default function BookingForm({ services, design }: { services: Service[];
   })();
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} className="rounded-[20px] bg-white p-6 shadow-[0_10px_40px_rgba(44,24,32,0.08)] sm:p-8" noValidate>
-      <h1 className="mb-6 font-serif text-4xl font-medium">Book your appointment</h1>
+    <form ref={formRef} onSubmit={onSubmit} className="rounded-md border border-ink/15 bg-cream p-6 sm:p-8" noValidate>
+      <h1 className="mb-6 font-display text-2xl font-semibold">Book your appointment</h1>
 
       <div className="mb-5">
         <label htmlFor="service_id" className="field-label">Service</label>
@@ -153,8 +153,8 @@ export default function BookingForm({ services, design }: { services: Service[];
                   disabled={isTaken}
                   onClick={() => setTime(t)}
                   aria-pressed={time === t}
-                  className={`rounded-full border border-nails/30 py-2 text-sm font-bold transition-colors
-                    ${time === t ? 'bg-nails text-cream' : 'hover:bg-sage'} disabled:cursor-not-allowed disabled:line-through disabled:opacity-35 disabled:hover:bg-transparent`}
+                  className={`rounded-md border border-nails/30 py-2 text-sm font-semibold transition-colors
+                    ${time === t ? 'bg-ink text-cream' : 'hover:bg-sage'} disabled:cursor-not-allowed disabled:line-through disabled:opacity-35 disabled:hover:bg-transparent`}
                 >
                   {formatTime(t)}
                 </button>
@@ -189,7 +189,7 @@ export default function BookingForm({ services, design }: { services: Service[];
         )}
       </div>
 
-      <button type="submit" disabled={submitting} className="mt-6 w-full rounded-full bg-nails py-3.5 font-bold text-white transition hover:-translate-y-px disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
+      <button type="submit" disabled={submitting} className="mt-6 w-full rounded-md bg-ink py-3.5 font-semibold text-cream transition hover:-translate-y-px disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
         {submitting ? 'Booking...' : 'Book my appointment'}
       </button>
       <p role="status" className={`mt-3 min-h-[1.2em] text-center text-sm font-semibold ${status?.kind === 'error' ? 'text-bad' : 'text-ok'}`}>

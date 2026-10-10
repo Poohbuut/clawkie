@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import BookingForm from '@/components/BookingForm';
+import SiteHeader from '@/components/storefront/SiteHeader';
+import SiteFooter from '@/components/storefront/SiteFooter';
 import { getNailDesign } from '@/lib/designs';
 import { listServices } from '@/lib/services';
 
@@ -14,15 +16,15 @@ export default async function NailBookingPage({ searchParams }: { searchParams: 
   ]);
 
   return (
-    <div className="min-h-screen bg-cream text-nails">
-      <header className="flex items-center justify-between px-8 py-5">
-        <Link href="/nails" className="text-sm font-semibold">&larr; Designs</Link>
-        <span className="font-serif text-2xl">Clawsette</span>
-        <span className="w-14" aria-hidden="true" />
-      </header>
-      <main className="mx-auto max-w-xl px-6 pb-16">
+    <div className="min-h-screen bg-cream text-ink">
+      <SiteHeader />
+      <main className="mx-auto max-w-xl px-5 py-10">
+        <nav className="mb-4 text-xs opacity-60" aria-label="Breadcrumb">
+          <Link href="/" className="hover:underline">Home</Link> / <Link href="/nails" className="hover:underline">Nails</Link> / Book
+        </nav>
         <BookingForm services={services} design={design} />
       </main>
+      <SiteFooter />
     </div>
   );
 }

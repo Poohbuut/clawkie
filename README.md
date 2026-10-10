@@ -24,8 +24,24 @@ npm run dev                  # http://localhost:3000
 - Photo filenames are sanitized and file type/size are checked server-side.
 
 ## Database
-Run `supabase/schema.sql` in the Supabase SQL editor. It creates the tables, the
-unique slot index, and the public `inspiration-photos` storage bucket.
+For a new Supabase project, run `supabase/schema.sql` in the SQL editor. For an
+existing app database, run `supabase/migrations/20261010_nail_design_catalog.sql`.
+Both nail photo buckets are public, so anyone with an image URL can view photos.
+
+Create an email/password user in Supabase Authentication, then promote it to
+admin by running this query with that user's email:
+
+```sql
+insert into public.users (id, role, full_name, email)
+select id, 'admin', coalesce(raw_user_meta_data->>'full_name', 'Admin'), email
+from auth.users
+where lower(email) = lower('admin@example.com')
+on conflict (id) do update set role = 'admin';
+```
+
+Sign in at `/owner-access` and enroll an authenticator the first time. Admin
+pages and APIs require a verified TOTP factor (AAL2). Configure all four values
+from `.env.example`; only `SUPABASE_SERVICE_ROLE_KEY` must remain server-only.
 
 ## Deploy
-Push to GitHub and import into Vercel; add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as environment variables.
+Push to GitHub and import into Vercel; configure all four variables from `.env.example`.

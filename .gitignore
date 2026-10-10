@@ -5,6 +5,7 @@ out/
 .env.local
 .env.*.local
 .vercel
+graphify-out/
 *.log
 .DS_Store
 next-env.d.ts

@@ -1,17 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import type { Service } from '@/lib/services';
-import { formatTime, peso, toISODate } from '@/lib/format';
+import { useRef, useState } from 'react';
+import type { Service } from '@/types';
+import { formatTime, peso } from '@/lib/format';
 import { MAX_PHOTO_BYTES, NAIL_SLOTS } from '@/lib/slots';
-
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+import Calendar from './Calendar';
+import CustomerFields from './CustomerFields';
 
 export default function BookingForm({ services }: { services: Service[] }) {
-  // "today" is set after mount so server and client timezones can't cause a hydration mismatch.
-  const [today, setToday] = useState<Date | null>(null);
-  const [view, setView] = useState({ y: 0, m: 0 });
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [taken, setTaken] = useState<string[]>([]);
@@ -20,13 +16,6 @@ export default function BookingForm({ services }: { services: Service[] }) {
   const [status, setStatus] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const t = new Date();
-    t.setHours(0, 0, 0, 0);
-    setToday(t);
-    setView({ y: t.getFullYear(), m: t.getMonth() });
-  }, []);
 
   async function pickDate(iso: string) {
     setDate(iso);
@@ -85,15 +74,6 @@ export default function BookingForm({ services }: { services: Service[] }) {
     }
   }
 
-  function shiftMonth(delta: number) {
-    setView(({ y, m }) => {
-      const next = m + delta;
-      return { y: y + Math.floor(next / 12), m: ((next % 12) + 12) % 12 };
-    });
-  }
-
-  const firstDay = today ? new Date(view.y, view.m, 1).getDay() : 0;
-  const daysInMonth = today ? new Date(view.y, view.m + 1, 0).getDate() : 0;
   const selectedLabel = (() => {
     if (!date || !time) return '';
     const [y, m, d] = date.split('-').map(Number);
@@ -117,41 +97,7 @@ export default function BookingForm({ services }: { services: Service[] }) {
         </select>
       </div>
 
-      {/* Calendar */}
-      <fieldset className="mb-5">
-        <legend className="field-label">Date</legend>
-        <div className="mb-2 flex items-center justify-between">
-          <button type="button" onClick={() => shiftMonth(-1)} aria-label="Previous month" className="h-9 w-9 rounded-full border border-sage hover:bg-sage">&lsaquo;</button>
-          <span className="font-bold" aria-live="polite">{today ? `${MONTHS[view.m]} ${view.y}` : '\u00a0'}</span>
-          <button type="button" onClick={() => shiftMonth(1)} aria-label="Next month" className="h-9 w-9 rounded-full border border-sage hover:bg-sage">&rsaquo;</button>
-        </div>
-        <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold opacity-60">
-          {WEEKDAYS.map((d) => <span key={d}>{d}</span>)}
-        </div>
-        <div className="mt-1 grid grid-cols-7 gap-1">
-          {Array.from({ length: firstDay }).map((_, i) => <span key={`e${i}`} />)}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const cell = new Date(view.y, view.m, day);
-            const iso = toISODate(view.y, view.m, day);
-            const disabled = cell < today! || cell.getDay() === 0; // closed Sundays
-            const selected = iso === date;
-            return (
-              <button
-                key={iso}
-                type="button"
-                disabled={disabled}
-                onClick={() => pickDate(iso)}
-                aria-pressed={selected}
-                className={`aspect-square rounded-lg text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-nails
-                  ${selected ? 'bg-nails text-cream' : 'hover:bg-sage'} disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent`}
-              >
-                {day}
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
+      <Calendar value={date} onChange={pickDate} isClosed={(d) => d.getDay() === 0} />
 
       {date && (
         <fieldset className="mb-5">
@@ -178,20 +124,7 @@ export default function BookingForm({ services }: { services: Service[] }) {
       )}
       <p className="mb-5 min-h-[1.2em] text-sm font-semibold" role="status">{selectedLabel && `Selected: ${selectedLabel}`}</p>
 
-      <div className="mb-4">
-        <label htmlFor="full_name" className="field-label">Your name</label>
-        <input id="full_name" name="full_name" type="text" required className="field-input focus:ring-sage" />
-      </div>
-      <div className="mb-4 grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="email" className="field-label">Email</label>
-          <input id="email" name="email" type="email" required className="field-input focus:ring-sage" />
-        </div>
-        <div>
-          <label htmlFor="phone" className="field-label">Phone</label>
-          <input id="phone" name="phone" type="tel" required className="field-input focus:ring-sage" />
-        </div>
-      </div>
+      <CustomerFields ring="focus:ring-sage" />
       <div className="mb-4">
         <label htmlFor="notes" className="field-label">Notes (optional)</label>
         <textarea id="notes" name="notes" rows={3} placeholder="Shape, length, colors, allergies" className="field-input focus:ring-sage" />

@@ -1,14 +1,7 @@
 import { supabase } from './supabase';
+import type { Business, Service } from '@/types';
 
-export type Service = {
-  id: string;
-  business: 'nails' | 'cookies';
-  name: string;
-  price: number;
-  duration_minutes: number | null;
-};
-
-export async function listServices(business: 'nails' | 'cookies'): Promise<Service[]> {
+export async function listServices(business: Business): Promise<Service[]> {
   const { data, error } = await supabase
     .from('services')
     .select('id, business, name, price, duration_minutes')
@@ -20,7 +13,7 @@ export async function listServices(business: 'nails' | 'cookies'): Promise<Servi
 }
 
 // Prices always come from the database, never from the client.
-export async function getService(id: string, business: 'nails' | 'cookies'): Promise<Service | null> {
+export async function getService(id: string, business: Business): Promise<Service | null> {
   const { data } = await supabase
     .from('services')
     .select('id, business, name, price, duration_minutes')
@@ -31,7 +24,7 @@ export async function getService(id: string, business: 'nails' | 'cookies'): Pro
   return data ? ({ ...data, price: Number(data.price) } as Service) : null;
 }
 
-export async function getServicesByIds(ids: string[], business: 'nails' | 'cookies'): Promise<Service[]> {
+export async function getServicesByIds(ids: string[], business: Business): Promise<Service[]> {
   const { data, error } = await supabase
     .from('services')
     .select('id, business, name, price, duration_minutes')

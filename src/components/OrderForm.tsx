@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { Service } from '@/lib/services';
+import type { Service } from '@/types';
 import { formatTime, peso } from '@/lib/format';
 import { DELIVERY_SLOTS, PICKUP_SLOTS } from '@/lib/slots';
+import CustomerFields from './CustomerFields';
 
 type Method = 'pickup' | 'delivery';
 
@@ -158,20 +159,7 @@ export default function OrderForm({ cookies }: { cookies: Service[] }) {
 
       <section className={step} aria-labelledby="s3">
         <h2 id="s3" className={`${stepTitle} mb-5`}><span className={stepNum}>3</span> Your details</h2>
-        <div className="mb-4">
-          <label htmlFor="full_name" className="field-label">Your name</label>
-          <input id="full_name" name="full_name" type="text" required className="field-input focus:ring-tan" />
-        </div>
-        <div className="mb-4 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="email" className="field-label">Email</label>
-            <input id="email" name="email" type="email" required className="field-input focus:ring-tan" />
-          </div>
-          <div>
-            <label htmlFor="phone" className="field-label">Phone</label>
-            <input id="phone" name="phone" type="tel" required className="field-input focus:ring-tan" />
-          </div>
-        </div>
+        <CustomerFields ring="focus:ring-tan" />
         <div className="mb-4">
           <label htmlFor="allergies" className="field-label">Allergies or dietary notes (optional)</label>
           <input id="allergies" name="allergies" type="text" placeholder="e.g. nut allergy, no dairy" className="field-input focus:ring-tan" />

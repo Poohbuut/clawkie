@@ -3,22 +3,10 @@ import { supabase } from '@/lib/supabase';
 import { getServicesByIds } from '@/lib/services';
 import { getOrCreateCustomer } from '@/lib/customers';
 import { DELIVERY_SLOTS, PICKUP_SLOTS } from '@/lib/slots';
-
-type Body = {
-  full_name?: string;
-  email?: string;
-  phone?: string;
-  fulfillment_method?: 'pickup' | 'delivery';
-  order_date?: string;
-  order_time?: string;
-  delivery_address?: string | null;
-  allergies?: string | null;
-  notes?: string | null;
-  order_items?: { service_id: string; qty: number }[];
-};
+import type { CookieOrderRequest } from '@/types';
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json().catch(() => null)) as Body | null;
+  const body = (await req.json().catch(() => null)) as CookieOrderRequest | null;
   if (!body) return NextResponse.json({ error: 'Invalid or missing JSON body' }, { status: 400 });
 
   const { full_name, email, phone, fulfillment_method, order_date, order_time, order_items } = body;

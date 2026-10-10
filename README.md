@@ -23,6 +23,9 @@ npm run dev                  # http://localhost:3000
 - `GET /api/nail-slots?date=` disables already-booked times in the calendar.
 - Photo filenames are sanitized and file type/size are checked server-side.
 
+## Database
+Run `supabase/schema.sql` in the Supabase SQL editor. It creates the tables, the
+unique slot index, and the public `inspiration-photos` storage bucket.
+
 ## Deploy
 Push to GitHub and import into Vercel; add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as environment variables.
-# clawkie

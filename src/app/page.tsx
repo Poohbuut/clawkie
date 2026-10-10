@@ -3,6 +3,7 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <main className="relative flex min-h-screen flex-col md:flex-row">
+      <Link href="/login" className="absolute right-5 top-5 z-20 rounded-full border border-nails/20 bg-white/85 px-4 py-2 text-sm font-bold text-nails backdrop-blur hover:bg-white md:right-8 md:top-7">Account</Link>
       <Link
         href="/nails"
         className="group flex flex-1 flex-col items-center justify-center bg-cream px-6 py-20 text-nails transition-[flex] duration-500 hover:flex-[1.15]"

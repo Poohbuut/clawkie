@@ -4,9 +4,12 @@ import { useRef, useState } from 'react';
 import type { Service } from '@/types';
 import { formatTime, peso } from '@/lib/format';
 import { MAX_PHOTO_BYTES, NAIL_SLOTS } from '@/lib/slots';
+import { supabaseBrowser } from '@/lib/supabase-browser';
 import type { NailDesign } from '@/types';
 import Calendar from './Calendar';
 import CustomerFields from './CustomerFields';
+
+const OK_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
 
 export default function BookingForm({ services, design }: { services: Service[]; design?: NailDesign | null }) {
   const [date, setDate] = useState<string | null>(null);
@@ -38,6 +41,11 @@ export default function BookingForm({ services, design }: { services: Service[];
       e.target.value = '';
       return;
     }
+    if (!OK_TYPES.includes(file.type)) {
+      alert('Please choose a JPG, PNG, WebP or HEIC image.');
+      e.target.value = '';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (ev) => setPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
@@ -59,6 +67,26 @@ export default function BookingForm({ services, design }: { services: Service[];
       fd.set('appointment_date', date);
       fd.set('appointment_time', time);
       if (design) fd.set('design_id', design.id);
+
+      const file = fileRef.current?.files?.[0];
+      fd.delete('inspiration_photo');
+
+      if (file) {
+        const prep = await fetch('/api/upload-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contentType: file.type, size: file.size }),
+        });
+        const prepData = await prep.json();
+        if (!prep.ok) throw new Error(prepData.error || 'Could not upload your photo.');
+
+        const { error: uploadError } = await supabaseBrowser()
+          .storage.from('inspiration-photos')
+          .uploadToSignedUrl(prepData.path, prepData.token, file, { contentType: file.type });
+        if (uploadError) throw new Error('Photo upload failed. Please try again.');
+        fd.set('photo_path', prepData.path);
+      }
+
       const res = await fetch('/api/book-nails', { method: 'POST', body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
@@ -146,7 +174,7 @@ export default function BookingForm({ services, design }: { services: Service[];
       {/* Photo upload */}
       <div className="mb-2">
         <span className="field-label">Inspiration photo (optional)</span>
-        <input ref={fileRef} id="inspiration_photo" name="inspiration_photo" type="file" accept="image/*" onChange={onPhoto} className="sr-only" />
+        <input ref={fileRef} id="inspiration_photo" name="inspiration_photo" type="file" accept="image/jpeg,image/png,image/webp,image/heic" onChange={onPhoto} className="sr-only" />
         {preview ? (
           <div className="flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -156,7 +184,7 @@ export default function BookingForm({ services, design }: { services: Service[];
         ) : (
           <label htmlFor="inspiration_photo" className="flex cursor-pointer flex-col items-center rounded-xl border border-dashed border-nails/30 bg-cream px-4 py-6 text-center text-sm font-semibold opacity-100 hover:bg-sage/50">
             Tap to add a photo
-            <span className="mt-1 text-xs font-medium opacity-60">JPG or PNG, up to 8MB</span>
+            <span className="mt-1 text-xs font-medium opacity-60">JPG, PNG, WebP or HEIC, up to 8MB</span>
           </label>
         )}
       </div>

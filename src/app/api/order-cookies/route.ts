@@ -4,6 +4,7 @@ import { getServicesByIds } from '@/lib/services';
 import { getOrCreateCustomer } from '@/lib/customers';
 import { DELIVERY_SLOTS, PICKUP_SLOTS } from '@/lib/slots';
 import type { CookieOrderRequest } from '@/types';
+import { notifyCookieOrderCreated } from '@/lib/notify';
 
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => null)) as CookieOrderRequest | null;
@@ -82,6 +83,24 @@ export async function POST(req: NextRequest) {
       await supabase.from('cookie_orders').delete().eq('id', order.id); // don't leave an empty order behind
       throw itemsError;
     }
+
+    await notifyCookieOrderCreated({
+      customerName: full_name,
+      customerEmail: email,
+      phone,
+      date: order_date,
+      time: order_time,
+      fulfillment: fulfillment_method,
+      address: body.delivery_address ?? null,
+      allergies: body.allergies ?? null,
+      notes: body.notes ?? null,
+      items: services.map((service) => ({
+        name: service.name,
+        quantity: qtyById.get(service.id) ?? 0,
+        price: service.price,
+      })),
+      total,
+    });
 
     return NextResponse.json({ success: true, order: { ...order, items: lineItems } }, { status: 201 });
   } catch (e) {

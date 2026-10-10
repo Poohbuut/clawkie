@@ -24,9 +24,10 @@ npm run dev                  # http://localhost:3000
 - Photo filenames are sanitized and file type/size are checked server-side.
 
 ## Database
-For a new Supabase project, run `supabase/schema.sql` in the SQL editor. For an
-existing app database, run `supabase/migrations/20261010_nail_design_catalog.sql`.
-Both nail photo buckets are public, so anyone with an image URL can view photos.
+Run `supabase/migrations/20261010_inspiration_upload_limits.sql` in the Supabase
+SQL editor to create or configure the public inspiration-photo bucket, including
+its 8 MB limit and allowed image MIME types. Anyone with an image URL can view
+photos in this public bucket.
 
 Create an email/password user in Supabase Authentication, then promote it to
 admin by running this query with that user's email:
@@ -40,8 +41,29 @@ on conflict (id) do update set role = 'admin';
 ```
 
 Sign in at `/owner-access` and enroll an authenticator the first time. Admin
-pages and APIs require a verified TOTP factor (AAL2). Configure all four values
-from `.env.example`; only `SUPABASE_SERVICE_ROLE_KEY` must remain server-only.
+pages and APIs require a verified TOTP factor (AAL2). Configure the Supabase
+values from `.env.example`; only `SUPABASE_SERVICE_ROLE_KEY` must remain server-only.
+
+## Email
+App-generated booking and order alerts use `src/lib/email.ts` and SendGrid's
+Mail Send API. Set `SENDGRID_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME`,
+and `OWNER_EMAIL` in your local environment and deployment environment. Delivery
+is skipped if the API key or sender address is missing, and email failures do
+not fail a saved booking or order.
+
+Configure the sender in SendGrid and enable custom SMTP in Supabase Auth with
+host `smtp.sendgrid.net`, port `587`, username `apikey`, and the SendGrid API key
+as the password. Authenticate the sender/domain in SendGrid first. In Supabase,
+use the contents of `supabase/templates/confirm-signup.html` for Confirm signup
+and `magic-link.html` for Magic Link; both display `{{ .Token }}` for the code
+entry flow. Use `reset-password.html` for Reset Password and
+`change-email.html` for Change Email Address. Set email OTP length to six and
+choose a suitable expiry. Set the Supabase Site URL to the deployed app URL.
+
+These Supabase and SendGrid dashboard changes, API-key creation, sender/domain
+verification, Vercel environment variables, and live email-delivery tests must
+be completed manually. The app currently has no email-change screen; with
+secure email changes enabled, Supabase requires confirmation at both addresses.
 
 ## Deploy
-Push to GitHub and import into Vercel; configure all four variables from `.env.example`.
+Push to GitHub and import into Vercel; configure the required variables from `.env.example`.

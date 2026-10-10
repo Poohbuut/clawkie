@@ -3,8 +3,8 @@ import { supabase } from './supabase';
 /**
  * Guest checkout: public.users.id references auth.users, so each customer
  * needs a real Supabase Auth account even if they never set a password.
- * Note: generateLink only creates the link; it does not email it. Configure
- * custom SMTP in Supabase or send it with Resend/Postmark to deliver it.
+ * Note: generateLink only creates the link; it does not email it. Auth email
+ * delivery is configured separately through Supabase custom SMTP.
  */
 export async function getOrCreateCustomer(emailRaw: string, fullName: string, phone?: string | null): Promise<string> {
   const email = emailRaw.trim().toLowerCase();

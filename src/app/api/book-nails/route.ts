@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { getService } from '@/lib/services';
 import { getOrCreateCustomer } from '@/lib/customers';
-import { MAX_PHOTO_BYTES, NAIL_SLOTS } from '@/lib/slots';
+import { NAIL_SLOTS } from '@/lib/slots';
+import { notifyAppointmentCreated } from '@/lib/notify';
 
 export const runtime = 'nodejs';
 
@@ -26,36 +27,38 @@ export async function POST(req: NextRequest) {
   }
 
   const designId = get('design_id') || null;
+  let designName: string | null = null;
   if (designId) {
     const { data: design, error } = await supabase
       .from('nail_designs')
-      .select('id')
+      .select('id, name')
       .eq('id', designId)
       .eq('is_active', true)
       .maybeSingle();
     if (error || !design) return NextResponse.json({ error: 'Selected design is not available' }, { status: 400 });
+    designName = design.name;
   }
 
   const service = await getService(get('service_id'), 'nails');
   if (!service) return NextResponse.json({ error: 'Selected service is not available' }, { status: 400 });
 
+  const bucket = 'inspiration-photos';
   let photoUrl: string | null = null;
-  const photo = form.get('inspiration_photo');
-  if (photo instanceof File && photo.size > 0) {
-    if (photo.size > MAX_PHOTO_BYTES) return NextResponse.json({ error: 'Photo must be under 8MB' }, { status: 400 });
-    if (!photo.type.startsWith('image/')) return NextResponse.json({ error: 'Photo must be an image' }, { status: 400 });
-
-    const safeName = photo.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
-    const path = `inspiration/${Date.now()}_${safeName}`;
-    const { error: upErr } = await supabase.storage
-      .from('inspiration-photos')
-      .upload(path, Buffer.from(await photo.arrayBuffer()), { contentType: photo.type });
-    if (upErr) {
-      console.error(upErr);
-      return NextResponse.json({ error: 'Could not upload your photo. Please try again.' }, { status: 500 });
+  let photoPath: string | null = null;
+  const rawPath = get('photo_path');
+  if (rawPath) {
+    if (!/^inspiration\/[0-9a-f-]{36}\.(jpg|png|webp|heic)$/.test(rawPath)) {
+      return NextResponse.json({ error: 'Invalid photo reference' }, { status: 400 });
     }
-    photoUrl = supabase.storage.from('inspiration-photos').getPublicUrl(path).data.publicUrl;
+    const { data: exists, error: existsError } = await supabase.storage.from(bucket).exists(rawPath);
+    if (existsError || !exists) return NextResponse.json({ error: 'Photo upload not found. Please re-attach it.' }, { status: 400 });
+    photoPath = rawPath;
+    photoUrl = supabase.storage.from(bucket).getPublicUrl(rawPath).data.publicUrl;
   }
+
+  const discardPhoto = async () => {
+    if (photoPath) await supabase.storage.from(bucket).remove([photoPath]);
+  };
 
   try {
     const customerId = await getOrCreateCustomer(get('email'), get('full_name'), get('phone'));
@@ -78,12 +81,25 @@ export async function POST(req: NextRequest) {
     if (error) {
       // unique violation on (appointment_date, appointment_time)
       if (error.code === '23505' || error.message.includes('uq_appointment_slot')) {
+        await discardPhoto();
         return NextResponse.json({ error: 'That time slot was just taken. Please pick another.' }, { status: 409 });
       }
       throw error;
     }
+    await notifyAppointmentCreated({
+      customerName: get('full_name'),
+      customerEmail: get('email'),
+      phone: get('phone'),
+      serviceName: service.name,
+      designName,
+      date,
+      time: get('appointment_time'),
+      notes: get('notes'),
+      photoUrl,
+    });
     return NextResponse.json({ success: true, appointment: data }, { status: 201 });
   } catch (e) {
+    await discardPhoto();
     console.error('Failed to insert nail appointment', e);
     return NextResponse.json({ error: 'Could not save your appointment. Please try again.' }, { status: 500 });
   }

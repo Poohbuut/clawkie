@@ -20,3 +20,20 @@ export type CookieOrderRequest = {
   notes?: string | null;
   order_items?: { service_id: string; qty: number }[];
 };
+
+export type NailDesignCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  sort_order: number;
+};
+
+export type NailDesign = {
+  id: string;
+  name: string;
+  description: string | null;
+  category_id: string | null;
+  starting_price: number | null;
+  image_url: string;
+  category: Pick<NailDesignCategory, 'id' | 'name' | 'slug'> | null;
+};

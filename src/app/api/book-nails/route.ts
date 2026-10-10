@@ -25,6 +25,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid appointment time' }, { status: 400 });
   }
 
+  const designId = get('design_id') || null;
+  if (designId) {
+    const { data: design, error } = await supabase
+      .from('nail_designs')
+      .select('id')
+      .eq('id', designId)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (error || !design) return NextResponse.json({ error: 'Selected design is not available' }, { status: 400 });
+  }
+
   const service = await getService(get('service_id'), 'nails');
   if (!service) return NextResponse.json({ error: 'Selected service is not available' }, { status: 400 });
 
@@ -55,6 +66,7 @@ export async function POST(req: NextRequest) {
         service_id: service.id,
         appointment_date: date,
         appointment_time: get('appointment_time'),
+        design_id: designId,
         status: 'pending',
         notes: get('notes') || null,
         inspiration_photo_url: photoUrl,

@@ -4,10 +4,11 @@ import { useRef, useState } from 'react';
 import type { Service } from '@/types';
 import { formatTime, peso } from '@/lib/format';
 import { MAX_PHOTO_BYTES, NAIL_SLOTS } from '@/lib/slots';
+import type { NailDesign } from '@/types';
 import Calendar from './Calendar';
 import CustomerFields from './CustomerFields';
 
-export default function BookingForm({ services }: { services: Service[] }) {
+export default function BookingForm({ services, design }: { services: Service[]; design?: NailDesign | null }) {
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [taken, setTaken] = useState<string[]>([]);
@@ -57,6 +58,7 @@ export default function BookingForm({ services }: { services: Service[] }) {
       const fd = new FormData(e.currentTarget);
       fd.set('appointment_date', date);
       fd.set('appointment_time', time);
+      if (design) fd.set('design_id', design.id);
       const res = await fetch('/api/book-nails', { method: 'POST', body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
@@ -98,6 +100,17 @@ export default function BookingForm({ services }: { services: Service[] }) {
       </div>
 
       <Calendar value={date} onChange={pickDate} isClosed={(d) => d.getDay() === 0} />
+
+      {design && (
+        <div className="mb-5 flex items-center gap-3 rounded-lg border border-nails/15 bg-cream p-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={design.image_url} alt="" className="h-16 w-16 rounded-md object-cover" />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide opacity-55">Selected design</p>
+            <p className="font-bold">{design.name}</p>
+          </div>
+        </div>
+      )}
 
       {date && (
         <fieldset className="mb-5">
